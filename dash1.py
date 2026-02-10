@@ -8,27 +8,24 @@ class LTOverview:
 
     def timeframe(self, time): # 15d 1M 6M 1Y 5Y Max
         date = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
-        if not date.empty:
-            if time == "15D":
-                date15D = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(15)["USDollars"]
-                return date15D
-            if time == "1M":
-                date1M = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(30)["USDollars"]
-                return date1M
-            if time == "6M":
-                date6M = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(180)["USDollars"]
-                return date6M
-            if time == "1Y":
-                date1Y = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(365)["USDollars"]
-                return date1Y
-            if time == "5Y":
-                date5Y = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(1825)["USDollars"]
-                return date5Y
-            if time == "Max":
-                Max = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(date["USDollars"].count())["USDollars"]
-                return Max
-        else:
+
+        if date.empty:
             return None
+        
+        timeframe = {
+        "15D": 15,
+        "1M": 30,
+        "6M": 180,
+        "1Y": 365,
+        "5Y": 365 * 5,
+        "Max": len(date)
+        }
+
+        if time not in timeframe:
+            raise ValueError(f"Invalid time: {time}")  
+        
+        dataframe = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(timeframe[time])["USDollars"]
+        return dataframe
 
     def check_graph_specyear(self, year):
         spec_yeardata = pd.read_sql(sql = f"""SELECT * FROM {self.name} WHERE date LIKE '%{year}%'""", con = engine)
@@ -88,3 +85,125 @@ class LTOverview:
                 max_value = percent_increase
         
         return min_value
+    
+
+    """
+    engine = get_engine()
+
+class LTOverview:
+    def __init__(self, name):
+        self.name = name
+
+    # ---------- SINGLE DATA LOADER (BEST PRACTICE) ----------
+    def _load_clean_data(self):
+        df = pd.read_sql(f"SELECT * FROM {self.name}", con=engine)
+
+        if df.empty:
+            return None
+
+        df = (
+            df.rename(columns={"close": "USDollars", "date": "Date"})
+              .assign(Date=lambda x: pd.to_datetime(x["Date"]))
+              .set_index("Date")
+              .sort_index()
+        )
+        return df
+
+    # ---------- YOUR TIMEFRAME METHOD (IMPROVED) ----------
+    def timeframe(self, time):
+        df = self._load_clean_data()
+        if df is None:
+            return None
+
+        windows = {
+            "15D": 15,
+            "1M": 30,
+            "6M": 180,
+            "1Y": 365,
+            "5Y": 365 * 5,
+            "Max": len(df)
+        }
+
+        if time not in windows:
+            raise ValueError(f"Invalid time: {time}")
+
+        return df["USDollars"].tail(windows[time])
+
+    # ---------- SPECIFIC YEAR (IMPROVED, NO LIKE) ----------
+    def check_graph_specyear(self, year):
+        df = self._load_clean_data()
+        if df is None:
+            return None
+
+        result = df.loc[df.index.year == int(year), "USDollars"]
+
+        return result if not result.empty else None
+
+    # ---------- SPECIFIC MONTH + YEAR (IMPROVED) ----------
+    def check_graph_specmonthyear(self, month, year):
+        df = self._load_clean_data()
+        if df is None:
+            return None
+
+        result = df.loc[
+            (df.index.year == int(year)) &
+            (df.index.month == int(month)),
+            "USDollars"
+        ]
+
+        return result if not result.empty else None
+
+    # ---------- ALL-TIME HIGH (IMPROVED) ----------
+    def check_all_time_high(self):
+        df = self._load_clean_data()
+        if df is None:
+            return None
+
+        max_value = df["USDollars"].max()
+        max_date = df["USDollars"].idxmax()
+
+        return float(max_value), max_date
+
+    # ---------- BEST YEAR (IMPROVED + FASTER) ----------
+    def check_best_year(self):
+        df = self._load_clean_data()
+        if df is None:
+            return None
+
+        yearly = (
+            df["USDollars"]
+            .groupby(df.index.year)
+            .agg(["first", "last"])
+        )
+
+        yearly["pct_change"] = (
+            (yearly["last"] - yearly["first"]) / yearly["first"] * 100
+        )
+
+        best_year = yearly["pct_change"].idxmax()
+        best_value = yearly["pct_change"].max()
+
+        return best_year, float(best_value)
+
+    # ---------- WORST YEAR (FIXED BUG) ----------
+    def worst_year(self):
+        df = self._load_clean_data()
+        if df is None:
+            return None
+
+        yearly = (
+            df["USDollars"]
+            .groupby(df.index.year)
+            .agg(["first", "last"])
+        )
+
+        yearly["pct_change"] = (
+            (yearly["last"] - yearly["first"]) / yearly["first"] * 100
+        )
+
+        worst_year = yearly["pct_change"].idxmin()
+        worst_value = yearly["pct_change"].min()
+
+        return worst_year, float(worst_value)
+    
+    """
