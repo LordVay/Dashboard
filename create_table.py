@@ -14,8 +14,8 @@ def create_tables(engine, folder_path):
         for csv in os.listdir(folder_path):
                 csv_path = os.path.join(folder_path,csv)
                 dataframe = pd.read_csv(csv_path)
+                
                 name = csv.replace(".csv", "").lower()
-
                 dataframe.to_sql(name = name, 
                                 con=engine,
                                 if_exists='replace', 
