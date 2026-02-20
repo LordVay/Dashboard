@@ -4,6 +4,9 @@ from create_table import get_engine
 engine = get_engine()
 class LTOverview:
     def __init__(self, name):
+        crypto_tables = {"btc", "eth"}
+        if name not in crypto_tables:
+            raise ValueError("Not Valid")
         self.name = name
 
     def timeframe(self, time): # 15d 1M 6M 1Y 5Y Max

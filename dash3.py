@@ -6,6 +6,9 @@ engine = get_engine()
 
 class Candle:
     def __init__(self, name):
+        crypto_tables = {"btc", "eth"}
+        if name not in crypto_tables:
+            raise ValueError("Not Valid")
         self.name = name
     
     def bullvsbear(self):
@@ -23,47 +26,35 @@ class Candle:
         
         return data
     
-    def candle_stick():
+    def candle_stick(self):
+        dataframe = pd.read_sql(f"""SELECT * FROM {self.name}""", con = engine )
+        if dataframe.empty:
+            return None
+        dataframe =(dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
+        parts = pd.DataFrame({
+        "Body": dataframe["Body"],
+        "Upper_Wick": dataframe["Upper_Wick"],
+        "Lower_Wick": dataframe["Lower_Wick"]
+        }, index=dataframe.index)
+        parts = parts.div(parts.sum(axis=1), axis=0)
+
+        return parts
+    def bull_streak(self):
+        dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
+        if dataframe.empty:
+            return None
+        dataframe =(dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
+        bull_int = (dataframe["Candle_Type"] == "Bull").astype(int)
+        bull_streak = bull_int.groupby((dataframe["Candle_Type"] != "Bull").cumsum()).cumsum()
+
+        return bull_streak
     
-    def bull_streak():
+    def bear_streak(self):
+        dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
+        if dataframe.empty:
+            return None
+        dataframe =(dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
+        bear_int = (dataframe["Candle_Type"] == "Bear").astype(int)
+        bear_streak = bear_int.groupby((dataframe["Candle_Type"] != "Bear").cumsum()).cumsum()
 
-    def bear_streak():
-
-
-"""def bull_streaks(self):
-    
-    df = self.get_ohlc()
-
-    # 1 if Bull candle, 0 otherwise
-    bull_int = (df["Candle_Type"] == "Bull").astype(int)
-
-    # 2. Group by consecutive non-Bull days and compute cumulative sum per group
-    bull_streak = bull_int.groupby((df["Candle_Type"] != "Bull").cumsum()).cumsum()
-
-    return bull_streak"""
-
-"""def bear_streaks(self):
-
-    df = self.get_ohlc()
-
-    # 1 if Bear candle, 0 otherwise
-    bear_int = (df["Candle_Type"] == "Bear").astype(int)
-
-    # 2. Group by consecutive non-Bear days and compute cumulative sum per group
-    bear_streak = bear_int.groupby((df["Candle_Type"] != "Bear").cumsum()).cumsum()
-
-    return bear_streak"""
-
-"""def candle_parts_timeseries(self):
-    df = self.get_ohlc()
-
-    parts = pd.DataFrame({
-        "Body": df["Body"],
-        "Upper_Wick": df["Upper_Wick"],
-        "Lower_Wick": df["Lower_Wick"]
-    }, index=df.index)
-
-    # Normalize so it shows proportions
-    parts = parts.div(parts.sum(axis=1), axis=0)
-
-    return parts"""
+        return bear_streak

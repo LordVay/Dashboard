@@ -1,11 +1,15 @@
 import pandas as pd
 from create_table import get_engine
+import numpy as np
 
 
 engine = get_engine()
 
 class Volatile:
     def __init__(self, name):
+        crypto_tables = {"btc", "eth"}
+        if name not in crypto_tables:
+            raise ValueError("Not Valid")
         self.name = name
 
     def high_low_range (self, time): # 15d 1M 6M 1Y 5Y Max
@@ -35,7 +39,11 @@ class Volatile:
         if data_range.empty:
             return None
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
-        dataframe["Percentage_change"]  = dataframe["Close"].pct_change() * 100
+        dataframe['log_return'] = np.log(dataframe['Close'] / dataframe['Close'].shift(1))
+        dataframe[f'vol_{volatile_time}d'] = dataframe['log_return'].rolling(window=volatile_time).std() * np.sqrt(365)
+
+        latest_vol = dataframe[f'vol_{volatile_time}d'].iloc[-1]
+        return latest_vol
 
     def avg_percentage(self):
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
