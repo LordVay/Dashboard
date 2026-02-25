@@ -1,13 +1,31 @@
-import os
+import requests
 import pandas as pd
-import mysql.connector as mc
-from create_table import get_engine
+from dotenv import load_dotenv
+import os
 
-import numpy as np
+load_dotenv()
+news_key = os.getenv("NEWS_API")
 
-from model import Train
+if not news_key:
+    raise ValueError("API key not found in environment variables.")
+
+def get_news():
+    url = "https://cryptopanic.com/api/developer/v2/posts/"
+
+    params = {
+    "auth_token": news_key,
+    "currencies": "BTC",   # filter by coin
+    "public" : "true"        # optional filter
+    
+    }
+
+    response = requests.get(url, params=params)
+
+    data = response.json()
+    
 
 
+<<<<<<< HEAD
 
 engine = get_engine()
 
@@ -52,3 +70,5 @@ def check_graph_specmonthyear(month,year):
             return spec_monthyeardata
         else:
             return None
+=======
+>>>>>>> ffd199a6c81346cadaa27cb29e6a9e3f09c559ca
