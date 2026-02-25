@@ -11,16 +11,44 @@ from model import Train
 
 engine = get_engine()
 
+def tries(time):
+    date = pd.read_sql(sql = f"""SELECT * FROM btc""", con = engine )
 
-data_range = pd.read_sql(sql = f"""SELECT * from btc""", con = engine)
-dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
-dataframe['log_return'] = np.log(dataframe['Close'] / dataframe['Close'].shift(1))
-dataframe['vol_30d'] = dataframe['log_return'].rolling(window=30).std() * np.sqrt(365)
+    if date.empty:
+        return None
+            
+    timeframe = {
+            "15D": 15,
+            "1M": 30,
+            "6M": 180,
+            "1Y": 365,
+            "5Y": 365 * 5,
+            "Max": len(date)
+            }
 
-latest_vol = dataframe['vol_30d'].iloc[-1]
-print("Latest 30-day Volatility:", latest_vol)
+    if time not in timeframe:
+        raise ValueError(f"Invalid time: {time}")  
+            
+    dataframe = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(timeframe[time])["USDollars"]
+    return dataframe
 
-model = Train("btc")
-data = model.train_model()
-print(data)
 
+def check_graph_specyear(year):
+        spec_yeardata = pd.read_sql(sql = f"""SELECT * FROM btc WHERE date LIKE '%{year}%'""", con = engine)
+
+        if not spec_yeardata.empty:
+            spec_yeardata = spec_yeardata.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date")["USDollars"]
+            return spec_yeardata
+        else:
+            return None
+
+def check_graph_specmonthyear(month,year):
+        double_int_month = f"{month:02}"
+        spec_monthyeardata = pd.read_sql(sql = f"""SELECT * FROM btc""", con = engine)
+        if not spec_monthyeardata.empty:
+            spec_monthyeardata["date"] = pd.to_datetime(spec_monthyeardata["date"])
+            spec_monthyeardata = spec_monthyeardata.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date")["USDollars"]
+            spec_monthyeardata = spec_monthyeardata[(spec_monthyeardata.index.year == int(year))&(spec_monthyeardata.index.month == int(double_int_month))]
+            return spec_monthyeardata
+        else:
+            return None
