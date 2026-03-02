@@ -4,12 +4,12 @@ from create_table import get_engine
 engine = get_engine()
 class LTOverview:
     def __init__(self, name):
-        crypto_tables = {"btc", "eth"}
+        crypto_tables = {"btc", "eth", "ada", "bnb", "doge", "sol", "trx", "usdc", "usdt", "xrp"} # for edit
         if name not in crypto_tables:
             raise ValueError("Not Valid")
         self.name = name
 
-    def timeframe(self, time): # 15d 1M 6M 1Y 5Y Max
+    def timeframe(self, time): # Verified
         date = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
 
         if date.empty:
@@ -30,7 +30,7 @@ class LTOverview:
         dataframe = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(timeframe[time])["USDollars"]
         return dataframe
 
-    def check_graph_specyear(self, year):
+    def check_graph_specyear(self, year): # Verified
         spec_yeardata = pd.read_sql(sql = f"""SELECT * FROM {self.name} WHERE date LIKE '%{year}%'""", con = engine)
 
         if not spec_yeardata.empty:
@@ -39,7 +39,7 @@ class LTOverview:
         else:
             return None
     
-    def check_graph_specmonthyear(self,month,year): 
+    def check_graph_specmonthyear(self,month,year): # Verified
         double_int_month = f"{month:02}"
         spec_monthyeardata = pd.read_sql(sql = f"""SELECT * FROM btc""", con = engine)
         if not spec_monthyeardata.empty:
@@ -50,20 +50,24 @@ class LTOverview:
         else:
             return None
     
-    def check_all_time_high(self):
+    def check_all_time_high(self):#Verified
         all_timehigh = pd.read_sql(sql = f"""SELECT date, close FROM {self.name} WHERE close = (SELECT MAX(close) FROM {self.name})""", con = engine)
+        all_timehigh["date"] = pd.to_datetime(all_timehigh["date"])
         if not all_timehigh.empty:
             max_value = all_timehigh.loc[0, "close"]
-            max_date = all_timehigh.loc[0, "date"]
+            max_date = all_timehigh.loc[0, "date"].strftime("%Y-%m-%d")
             return max_value, max_date
         else:
             return None
         
         
-    def check_best_year(self):
+    def check_best_year(self): #Verified
         dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
         if dataframe.empty:
             return None
+        dataframe["date"] = pd.to_datetime(dataframe["date"])
+        dataframe = dataframe.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date")
+
         yearly = (
             dataframe["USDollars"]
             .groupby(dataframe.index.year)
@@ -79,10 +83,13 @@ class LTOverview:
 
         return best_year, float(best_value)
 
-    def worst_year(self):
+    def check_worst_year(self): # Verified
         dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
         if dataframe.empty:
             return None
+        dataframe["date"] = pd.to_datetime(dataframe["date"])
+        dataframe = dataframe.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date")
+
         yearly = (
             dataframe["USDollars"]
             .groupby(dataframe.index.year)

@@ -12,10 +12,12 @@ class Volatile:
             raise ValueError("Not Valid")
         self.name = name
 
-    def high_low_range (self, time): # 15d 1M 6M 1Y 5Y Max
+    def high_low_range (self, time): # Verified
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
         if data_range.empty:
             return None
+        
+        dataframe["date"] = pd.to_datetime(dataframe["date"])
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date"}).set_index("Date").sort_index())
         dataframe["DailyRange"] = dataframe["High"] - dataframe ["Low"]
 
@@ -34,7 +36,7 @@ class Volatile:
         new_data = dataframe["Daily Range"].tail(timeframe[time])
         return new_data
     
-    def volatily_graph(self, volatile_time):
+    def volatility_graph(self, volatile_time): #Verified
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
         if data_range.empty:
             return None
@@ -45,7 +47,7 @@ class Volatile:
         latest_vol = dataframe[f'vol_{volatile_time}d'].iloc[-1]
         return latest_vol
 
-    def avg_percentage(self):
+    def avg_percentage(self): # Verified
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
 
         if data_range.empty:
@@ -57,12 +59,13 @@ class Volatile:
 
         return avg
     
-    def max_1D_percent(self):
+    def max_1D_percent(self):# Verified
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
         
         if data_range.empty:
             return None
         
+        dataframe["date"] = pd.to_datetime(dataframe["date"])
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
         dataframe["Percentage_change"]  = dataframe["Close"].pct_change() * 100
         max_value = dataframe["Percentage_change"].max()
@@ -70,12 +73,13 @@ class Volatile:
 
         return max_value, max_date
     
-    def min_1D_percent(self):
+    def min_1D_percent(self): #Verified
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
         
         if data_range.empty:
             return None
         
+        dataframe["date"] = pd.to_datetime(dataframe["date"])
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
         dataframe["Percentage_change"]  = dataframe["Close"].pct_change() * 100
         min_value = dataframe["Percentage_change"].min()
