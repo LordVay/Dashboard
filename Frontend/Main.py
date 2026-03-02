@@ -3,16 +3,18 @@ import requests
 import pandas as pd
 from dotenv import load_dotenv
 import os
+from datetime import datetime
 
 st.title("Top 10 Crytpocurrency Dashboard and Predictive Model")
 st.caption("Live Prices, Price History, Market Insights and Latest Crypto Headlines !")
 
-def get_latest_data():
-    load_dotenv()
+
+load_dotenv()
+
 api_key = os.getenv("API_KEY")
 news_key = os.getenv("NEWS_API")
 
-if not news_key or api_key:
+if not news_key or not api_key:
     raise ValueError("API key not found in environment variables.")
 
 headers = {
@@ -58,18 +60,27 @@ def get_news():
     return data_array
 
 
-col1, col2 = st.columns([3, 1])
+df = get_data()
+df = df.rename(columns= {"name" : "Coin", "symbol" : "Symbol", "current_price" : "Price (USD)", "market_cap" : "Market Cap", "price_change_percentage_24h" : "24 Hours % Change" } )
+st.dataframe(df.style.format({ "Price (USD)": "${:,.2f}", "Market Cap": "${:,.0f}", "24 Hours % Change": "{:.2f}%" }), hide_index= True)
 
-with col1:
-    df = get_data()
-    df = df.rename(columns= {"name" : "Coin", "symbol" : "Symbol", "current_price" : "Price (USD)", "market_cap" : "Market Cap", "price_change_percentage_24h" : "24 Hours % Change" } )
-    st.dataframe(df.style.format({ "Price (USD)": "${:,.2f}", "Market Cap": "${:,.0f}", "24 Hours % Change": "{:.2f}%" }), hide_index= True)
 
-with col2:
-    st.subheader("World's Top 3 CryptoNews as of Today !")
-    data_array = get_news()
-    for data in data_array[0:3]:
-        st.subheader(data["title"])
-        st.caption(data[""])
-        st.write(data[""])
-        st.markdown(data[""])
+st.subheader("🌍 World's Top 3 CryptoNews as of Today !")
+articles = get_news()
+
+
+for article in articles[0:3]:
+    
+        st.write(article["title"])
+
+        raw_date = article["published_at"].replace("Z", "+00:00")
+        pub_date = datetime.fromisoformat(raw_date)
+        formatted_date = pub_date.strftime("%B %d, %Y %I:%M %p")
+
+        st.caption(formatted_date)
+        st.write(article["description"])
+        button_label = f"Read More: {article['title'][:15]}..."
+        
+        if st.button(button_label, key=article["title"]):
+            st.info(f"Full article: {article['description']}")
+        
