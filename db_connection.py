@@ -8,7 +8,7 @@ import numpy as np
 
 engine = get_engine()
 
-def month_heatmap(year):
+def month_heatmap(year):# Verified
         dataframe = pd.read_sql(sql = f"""SELECT * FROM btc""", con = engine )
         if dataframe.empty:
             return None
