@@ -11,21 +11,20 @@ class Heat_Map:
             raise ValueError("Not Valid")
         self.name = name
 
-    def month_heatmap(self):
+    def month_heatmap(self, year):# Verified
         dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
         if dataframe.empty:
             return None
+        
+        dataframe['date'] = pd.to_datetime(dataframe['date'])
         dataframe =(dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
 
-        dataframe['Date'] = pd.to_datetime(dataframe['Date'])
-        dataframe = dataframe.sort_values('date')
-
-        dataframe['year'] = dataframe['date'].dataframe.year
-        dataframe['month'] = dataframe['date'].dataframe.month
+        dataframe['year'] = dataframe.index.year
+        dataframe['month'] = dataframe.index.month
 
         monthly_return = (
             dataframe.groupby(['year', 'month'])
-            .apply(lambda x: (x['close'].iloc[-1] - x['close'].iloc[0]) / x['close'].iloc[0])
+            .apply(lambda x: (x['Close'].iloc[-1] - x['Close'].iloc[0]) / x['Close'].iloc[0])
             .reset_index(name='monthly_return')
         )
 
@@ -38,5 +37,6 @@ class Heat_Map:
         heatmap_data.columns = ['Jan','Feb','Mar','Apr','May','Jun',
                                 'Jul','Aug','Sep','Oct','Nov','Dec']
         
-        return heatmap_data
+        year_heatmap = heatmap_data.loc[year]
+        return year_heatmap
             

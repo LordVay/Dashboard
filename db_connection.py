@@ -2,26 +2,40 @@ import requests
 import pandas as pd
 from dotenv import load_dotenv
 import os
+import pandas as pd
+from create_table import get_engine
+import numpy as np
 
-load_dotenv()
-news_key = os.getenv("NEWS_API")
+engine = get_engine()
 
-if not news_key:
-    raise ValueError("API key not found in environment variables.")
+def month_heatmap(year):# Verified
+        dataframe = pd.read_sql(sql = f"""SELECT * FROM btc""", con = engine )
+        if dataframe.empty:
+            return None
+        
+        dataframe['date'] = pd.to_datetime(dataframe['date'])
+        dataframe =(dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
 
-def get_news():
-    url = "https://cryptopanic.com/api/developer/v2/posts/"
+        dataframe['year'] = dataframe.index.year
+        dataframe['month'] = dataframe.index.month
 
-    params = {
-    "auth_token": news_key,
-    "currencies": "BTC",   # filter by coin
-    "public" : "true"        # optional filter
-    
-    }
+        monthly_return = (
+            dataframe.groupby(['year', 'month'])
+            .apply(lambda x: (x['Close'].iloc[-1] - x['Close'].iloc[0]) / x['Close'].iloc[0])
+            .reset_index(name='monthly_return')
+        )
 
-    response = requests.get(url, params=params)
+        # Pivot for heatmap
+        heatmap_data = monthly_return.pivot(index='year',
+                                            columns='month',
+                                            values='monthly_return')
 
-    data = response.json()
-    
+        # Rename month numbers
+        heatmap_data.columns = ['Jan','Feb','Mar','Apr','May','Jun',
+                                'Jul','Aug','Sep','Oct','Nov','Dec']
+        
+        year_heatmap = heatmap_data.loc[year]
+        return year_heatmap
 
-
+data= month_heatmap(2020)
+print(data)
