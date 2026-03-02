@@ -12,11 +12,8 @@ def get_latest_data():
 api_key = os.getenv("API_KEY")
 news_key = os.getenv("NEWS_API")
 
-<<<<<<< HEAD
-=======
 if not news_key or api_key:
     raise ValueError("API key not found in environment variables.")
->>>>>>> cd16218bbf03f516f3c4a49d22746ae2384288e8
 
 headers = {
     "accept": "application/json",
@@ -44,39 +41,21 @@ def get_data():
 
 @st.cache_data
 def get_news():
-<<<<<<< HEAD
-    url = "https://cryptopanic.com/api/developer/v2"
-=======
     url = "https://cryptopanic.com/api/developer/v2/posts/"
->>>>>>> cd16218bbf03f516f3c4a49d22746ae2384288e8
 
     params = {
     "auth_token": news_key,
     "currencies": "BTC",   # filter by coin
-<<<<<<< HEAD
-    "kind": "news"         # optional filter
-    
-    }
-
-=======
     "public" : "true"        # optional filter
     
     }
->>>>>>> cd16218bbf03f516f3c4a49d22746ae2384288e8
     response = requests.get(url, params=params)
 
     data = response.json()
 
-<<<<<<< HEAD
-    for post in data["results"]:
-        print(post["title"])
-        print(post["url"])
-        print("-" * 50)
-=======
     data_array = data["results"]
 
     return data_array
->>>>>>> cd16218bbf03f516f3c4a49d22746ae2384288e8
 
 
 col1, col2 = st.columns([3, 1])
@@ -86,9 +65,6 @@ with col1:
     df = df.rename(columns= {"name" : "Coin", "symbol" : "Symbol", "current_price" : "Price (USD)", "market_cap" : "Market Cap", "price_change_percentage_24h" : "24 Hours % Change" } )
     st.dataframe(df.style.format({ "Price (USD)": "${:,.2f}", "Market Cap": "${:,.0f}", "24 Hours % Change": "{:.2f}%" }), hide_index= True)
 
-<<<<<<< HEAD
-with col2:
-=======
 with col2:
     st.subheader("World's Top 3 CryptoNews as of Today !")
     data_array = get_news()
@@ -97,4 +73,3 @@ with col2:
         st.caption(data[""])
         st.write(data[""])
         st.markdown(data[""])
->>>>>>> cd16218bbf03f516f3c4a49d22746ae2384288e8
