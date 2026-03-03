@@ -7,7 +7,7 @@ engine = get_engine()
 
 class Volatile:
     def __init__(self, name):
-        crypto_tables = {"btc", "eth"}
+        crypto_tables = {"btc", "eth", "ada", "bnb", "doge", "sol", "trx", "usdc", "usdt", "xrp"}
         if name not in crypto_tables:
             raise ValueError("Not Valid")
         self.name = name
@@ -17,7 +17,7 @@ class Volatile:
         if data_range.empty:
             return None
         
-        dataframe["date"] = pd.to_datetime(dataframe["date"])
+        data_range["date"] = pd.to_datetime(data_range["date"])
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date"}).set_index("Date").sort_index())
         dataframe["DailyRange"] = dataframe["High"] - dataframe ["Low"]
 
@@ -33,7 +33,7 @@ class Volatile:
         if time not in timeframe:
             return ValueError(f"Invalid time: {time}")   
 
-        new_data = dataframe["Daily Range"].tail(timeframe[time])
+        new_data = dataframe["DailyRange"].tail(timeframe[time])
         return new_data
     
     def volatility_graph(self, volatile_time): #Verified
@@ -44,8 +44,12 @@ class Volatile:
         dataframe['log_return'] = np.log(dataframe['Close'] / dataframe['Close'].shift(1))
         dataframe[f'vol_{volatile_time}d'] = dataframe['log_return'].rolling(window=volatile_time).std() * np.sqrt(365)
 
+        day_before_vol = dataframe[f'vol_{volatile_time}d'].iloc[-2]
         latest_vol = dataframe[f'vol_{volatile_time}d'].iloc[-1]
-        return latest_vol
+
+        change_in_volatility = latest_vol - day_before_vol
+        
+        return latest_vol, change_in_volatility
 
     def avg_percentage(self): # Verified
         data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
