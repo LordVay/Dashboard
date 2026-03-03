@@ -47,8 +47,8 @@ def get_news():
 
     params = {
     "auth_token": news_key,
-    "currencies": "BTC",   # filter by coin
-    "public" : "true"        # optional filter
+    "currencies": "BTC",  
+    "public" : "true"        
     
     }
     response = requests.get(url, params=params)
