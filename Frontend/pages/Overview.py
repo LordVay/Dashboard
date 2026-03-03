@@ -1,3 +1,5 @@
+import sys, os 
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from Backend.dash1 import LTOverview
 import streamlit as st
 
