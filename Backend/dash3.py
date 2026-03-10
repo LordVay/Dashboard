@@ -6,12 +6,12 @@ engine = get_engine()
 
 class Candle:
     def __init__(self, name):
-        crypto_tables = {"btc", "eth"}
+        crypto_tables = {"btc", "eth", "ada", "bnb", "doge", "sol", "trx", "usdc", "usdt", "xrp"}
         if name not in crypto_tables:
             raise ValueError("Not Valid")
         self.name = name
     
-    def bullvsbear(self): # Verified
+    def bullvsbear(self, time): # Verified
         dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
         if dataframe.empty:
             return None
@@ -26,7 +26,7 @@ class Candle:
         
         return data
     
-    def candle_stick(self): # Verified but needs to simplify
+    def candle_stick(self, time): # Verified but needs to simplify
         dataframe = pd.read_sql(f"""SELECT * FROM {self.name}""", con = engine )
         if dataframe.empty:
             return None
@@ -45,6 +45,15 @@ class Candle:
         }, index=dataframe.index)
         parts = parts.div(parts.sum(axis=1), axis=0)
 
+        timeframe = {
+            "10D": 10,
+            "20D":20,
+            "30D":30,
+            "40D":40,
+            "50D":50,
+            "60D":60
+        }
+        parts = parts.tail(timeframe[time])
         return parts
     
     def bull_streak(self): # Verified

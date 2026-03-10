@@ -69,11 +69,11 @@ class Volatile:
         if data_range.empty:
             return None
         
-        dataframe["date"] = pd.to_datetime(dataframe["date"])
+        data_range["date"] = pd.to_datetime(data_range["date"])
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
         dataframe["Percentage_change"]  = dataframe["Close"].pct_change() * 100
         max_value = dataframe["Percentage_change"].max()
-        max_date = dataframe["Percentage_change"].idxmax()
+        max_date = dataframe["Percentage_change"].idxmax().strftime("%Y-%m-%d")
 
         return max_value, max_date
     
@@ -83,10 +83,10 @@ class Volatile:
         if data_range.empty:
             return None
         
-        dataframe["date"] = pd.to_datetime(dataframe["date"])
+        data_range["date"] = pd.to_datetime(data_range["date"])
         dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
         dataframe["Percentage_change"]  = dataframe["Close"].pct_change() * 100
         min_value = dataframe["Percentage_change"].min()
-        min_date = dataframe["Percentage_change"].idxmin()
+        min_date = dataframe["Percentage_change"].idxmin().strftime("%Y-%m-%d")
 
         return min_value, min_date

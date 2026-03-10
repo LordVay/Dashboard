@@ -89,17 +89,17 @@ with colm:
 colm1, colm2, colm3 = st.columns([0.33, 0.33, 0.33])
 with colm1:
     max_value, max_date = overview.check_all_time_high()
-    st.metric(label= f"{max_date}", value = f"${max_value}", border = True)
-    st.markdown("<p style='text-align:center; color:gray;'>All time high</p>", unsafe_allow_html=True)
+    st.metric(label= f"All Time high : {max_date}", value = f"${max_value}", border = True)
+    
 
 with colm2:
     best_year, best_value= overview.check_best_year()
-    st.metric(label=f"{best_year}",value = f"{int(best_value)}%", border = True)
-    st.markdown("<p style='text-align:center; color:gray;'>Best Year</p>", unsafe_allow_html=True)
+    st.metric(label=f"Best Year : {best_year}",value = f"{int(best_value)}%", border = True)
+    
 
 with colm3:
     worst_year, worst_value = overview.check_worst_year()
-    st.metric(label=f"{worst_year}", value = f"{int(worst_value)}%", border = True)
-    st.markdown("<p style='text-align:center; color:gray;'>Worst Year</p>", unsafe_allow_html=True)
+    st.metric(label=f"Worst Year : {worst_year}", value = f"{int(worst_value)}%", border = True)
+    
 
 
