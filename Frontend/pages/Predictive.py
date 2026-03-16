@@ -20,6 +20,7 @@ cryptocurrency_data = {
 
 col1 , col2 = st.columns([0.3 ,0.7], border=True, gap = "small")
 
+
 with col1:
     cryptocurrency = st.selectbox("Currency", ["Bitcoin (BTC)", "Cardona (ADA)", "Binance (BNB)", "Dogecoin (DOGE)", "Ethereum (ETH)",
                                            "Solana (SOL)", "TRON (TRX)", "USDC (USDC)", "Tether (USDT)", "XRP (XRP)"])
@@ -40,30 +41,30 @@ with col1:
     predict_coin = st.button("💭 Predict", width="stretch")
     update_data = st.button("✏️ Update Data", width="stretch")
 
+    if train_coin:
+        st.status("Training on process...⏳")
+        model = Models(number_days=predict_days, name = cryptocurrency_data[cryptocurrency] )
+        model.train_model()
+        st.status("Tuning HyperParameters...⏳")
+        st.status("Updated Model")
+
 with col2:
     if predict_coin:
-        model = Models(number_days=predict_days, name = cryptocurrency_data[cryptocurrency] )
         time_graph = model.timeframe(timeframe) # Timeframe
 
         prediction = model.forecast()
         concatinate_graph = pd.concat([time_graph, prediction])
 
+        fig, ax = plt.subplots(figsize=(12, 5))
+
+        ax.plot(time_graph.index, time_graph.values, color='steelblue', label='Historical', linewidth=2)
+        ax.plot(prediction.index, prediction.values, color='tomato', label='Predicted', linewidth=2, linestyle='--')
+
+        ax.set_title(f"{cryptocurrency_data[cryptocurrency]} Price Forecast", fontsize=14)
+        ax.set_xlabel("Date")
+        ax.set_ylabel("Price")
+        ax.legend()
+        st.pyplot(fig)
 
 
-   
 
-
-    data_array = candle.bullvsbear(timeframe)
-    labels = "Bull", "Bear", "Doji"
-    sizes = [data_array[0] , data_array[1], data_array[2]]
-    explode = (0, 0, 0)
-
-    fig1,ax1 = plt.subplots()
-    fig1.patch.set_facecolor("#0E1117") 
-    ax1.set_facecolor("black")
-    colors = ["gray", "blue", "red"] 
-    ax1.pie(sizes, explode=explode, labels=labels, autopct='%1.1f%%', startangle=90, colors= colors, textprops={'color' : "white"})
-    ax1.axis('equal')
-    ax1.set_title("Bull vs Bear vs Doji", color="white", fontsize=14)
-
-    st.pyplot(fig1)
