@@ -34,7 +34,7 @@ with col1:
     }
     volatile = Volatile(cryptocurrency_data[cryptocurrency])
     latest_volatility, change_in_volatility = volatile.volatility_graph(volatility_number[volatility])
-    st.metric(label="Annualized Volatility", value = f"{latest_volatility*100:.2f}%", delta=f"{(change_in_volatility)*100:.2f}%")
+    st.metric(label="Annualized Volatility", value = f"{latest_volatility*100:.2f}%", delta=f"{(change_in_volatility)*100:.2f}%", border=True)
     
 with col2:
     high_low = volatile.high_low_range(timeframe)

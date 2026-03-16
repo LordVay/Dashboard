@@ -1,42 +1,56 @@
+import streamlit as st
+import requests
 import pandas as pd
-from create_table import get_engine
+from dotenv import load_dotenv
+import os
+from datetime import datetime
 
+load_dotenv()
 
-engine = get_engine()
+api_key = os.getenv("API_KEY")
+news_key = os.getenv("NEWS_API")
 
-class Heat_Map:
-    def __init__(self, name):
-        crypto_tables = {"btc", "eth"}
-        if name not in crypto_tables:
-            raise ValueError("Not Valid")
-        self.name = name
+if not news_key or not api_key:
+    raise ValueError("API key not found in environment variables.")
 
-    def month_heatmap(self, year):# Verified
-        dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
-        if dataframe.empty:
-            return None
-        
-        dataframe['date'] = pd.to_datetime(dataframe['date'])
-        dataframe =(dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "close": "Close", "open": "Open"}).set_index("Date").sort_index())
+headers = {
+    "accept": "application/json",
+    "x-cg-demo-api-key": api_key  
+}
 
-        dataframe['year'] = dataframe.index.year
-        dataframe['month'] = dataframe.index.month
+@st.cache_data
+def get_data():
+    url = "https://api.coingecko.com/api/v3/coins/markets"
 
-        monthly_return = (
-            dataframe.groupby(['year', 'month'])
-            .apply(lambda x: (x['Close'].iloc[-1] - x['Close'].iloc[0]) / x['Close'].iloc[0])
-            .reset_index(name='monthly_return')
-        )
+    params = {
+        "vs_currency": "usd", 
+        "order": "market_cap_desc",
+        "per_page": 10,
+        "page": 1,
+        "sparkline": False
+    }
 
-        # Pivot for heatmap
-        heatmap_data = monthly_return.pivot(index='year',
-                                            columns='month',
-                                            values='monthly_return')
+    response = requests.get(url, headers=headers, params=params)
+    data = response.json()
 
-        # Rename month numbers
-        heatmap_data.columns = ['Jan','Feb','Mar','Apr','May','Jun',
-                                'Jul','Aug','Sep','Oct','Nov','Dec']
-        
-        year_heatmap = heatmap_data.loc[year]
-        return year_heatmap
-            
+    dataframe = pd.DataFrame(data = data, columns= ["name", "symbol", "current_price", "market_cap", "price_change_percentage_24h"])
+
+    return dataframe
+
+@st.cache_data
+def get_news():
+    url = "https://cryptopanic.com/api/developer/v2/posts/"
+
+    params = {
+    "auth_token": news_key,
+    "currencies": "BTC",  
+    "public" : "true"        
+    
+    }
+    response = requests.get(url, params=params)
+
+    data = response.json()
+
+    data_array = data["results"]
+
+    return data_array

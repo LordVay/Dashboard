@@ -22,9 +22,23 @@ class Candle:
                                                                     else "Doji",
                                                         axis=1
                                                     )
-        data = dataframe["Candle_Type"].value_counts()
-        
-        return data
+        timeframe = {
+        "15D": 15,
+        "1M": 30,
+        "6M": 180,
+        "1Y": 365,
+        "5Y": 365 * 5,
+        "Max": len(dataframe)
+        }
+
+        data = dataframe["Candle_Type"].tail(timeframe[time]).value_counts()
+
+        size_bull = data.get("Bull", 0)
+        size_bear = data.get("Bear", 0)
+        size_doji = data.get("Doji", 0)
+
+        size = [size_bull, size_bear, size_doji]
+        return  size
     
     def candle_stick(self, time): # Verified but needs to simplify
         dataframe = pd.read_sql(f"""SELECT * FROM {self.name}""", con = engine )
@@ -46,13 +60,14 @@ class Candle:
         parts = parts.div(parts.sum(axis=1), axis=0)
 
         timeframe = {
-            "10D": 10,
-            "20D":20,
-            "30D":30,
-            "40D":40,
-            "50D":50,
-            "60D":60
+        "15D": 15,
+        "1M": 30,
+        "6M": 180,
+        "1Y": 365,
+        "5Y": 365 * 5,
+        "Max": len(dataframe)
         }
+
         parts = parts.tail(timeframe[time])
         return parts
     
@@ -74,12 +89,12 @@ class Candle:
         dataframe["bull_streak"] = bull_int.groupby((dataframe["Candle_Type"] != "Bull").cumsum()).cumsum()
 
 
-        max_streak = dataframe["bull_streak"].max()
-        max_date = dataframe["bull_streak"].idxmax().strftime("%Y-%m-%d")
-        min_date = dataframe.loc[:max_date].iloc[-max_streak].name.strftime("%Y-%m-%d")
+        max_streak_bull = dataframe["bull_streak"].max()
+        max_date_bull = dataframe["bull_streak"].idxmax().strftime("%Y-%m-%d")
+        min_date_bull = dataframe.loc[:max_date_bull].iloc[-max_streak_bull].name.strftime("%Y-%m-%d")
 
 
-        return max_streak, max_date, min_date
+        return max_streak_bull, max_date_bull, min_date_bull
     
     def bear_streak(self): # verified
         dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
@@ -99,9 +114,9 @@ class Candle:
         bear_int = (dataframe["Candle_Type"] == "Bear").astype(int)
         dataframe["bear_streak"]= bear_int.groupby((dataframe["Candle_Type"] != "Bear").cumsum()).cumsum()
 
-        max_streak = dataframe["bear_streak"].max()
-        max_date = dataframe["bear_streak"].idxmax().strftime("%Y-%m-%d")
-        min_date = dataframe.loc[:max_date].iloc[-max_streak].name.strftime("%Y-%m-%d")
+        max_streak_bear = dataframe["bear_streak"].max()
+        max_date_bear = dataframe["bear_streak"].idxmax().strftime("%Y-%m-%d")
+        min_date_bear = dataframe.loc[:max_date_bear].iloc[-max_streak_bear].name.strftime("%Y-%m-%d")
 
 
-        return max_streak, max_date, min_date
+        return max_streak_bear, max_date_bear, min_date_bear
