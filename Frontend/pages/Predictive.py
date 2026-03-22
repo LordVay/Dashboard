@@ -40,13 +40,13 @@ with col1:
     eval_coin  = st.button("📊 Evaluate", width="stretch")
     predict_coin = st.button("💭 Predict", width="stretch")
     update_data = st.button("✏️ Update Data", width="stretch")
-
+    model = Models(number_days=predict_days, name=cryptocurrency_data[cryptocurrency])
     if train_coin:
-        st.status("Training on process...⏳")
-        model = Models(number_days=predict_days, name = cryptocurrency_data[cryptocurrency] )
-        model.train_model()
-        st.status("Tuning HyperParameters...⏳")
-        st.status("Updated Model")
+        with st.status("Training on process... ⏳", expanded=True) as status:
+            st.write("Tuning HyperParameters...")
+            model.train_model()
+            
+            status.update(label="✅ Model Updated!", state="complete", expanded=False)
 
 with col2:
     if predict_coin:
@@ -66,5 +66,6 @@ with col2:
         ax.legend()
         st.pyplot(fig)
 
-
+#Update Coin
+#Eval
 
