@@ -148,7 +148,6 @@ class Models:
         X_train, y_train, X_test, y_test = self.clean_dataset()
 
         if tune:
-            print(f"[{self.name.upper()}] Tuning hyperparameters...")
             tscv = TimeSeriesSplit(n_splits=5)
             base = XGBRegressor(
                 objective="reg:squarederror",
@@ -169,7 +168,6 @@ class Models:
             # Tune on Day+1 target, apply best params to all horizons
             search.fit(X_train, y_train["Target_1"])
             best_params = search.best_params_
-            print(f"[{self.name.upper()}] Best params: {best_params}")
         else:
             best_params = dict(
                 n_estimators=800,
