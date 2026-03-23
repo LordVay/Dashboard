@@ -29,6 +29,12 @@ with col1:
     
     predict_days = st.selectbox("Days to Predict", ["10D" , "15D", "30D"])
 
+    convert_days = {
+        "10D":10,
+        "15D":15,
+        "30D":30
+    }
+
     if not predict_days:
         raise ValueError("Not a day to predict")
     
@@ -40,7 +46,8 @@ with col1:
     eval_coin  = st.button("📊 Evaluate", width="stretch")
     predict_coin = st.button("💭 Predict", width="stretch")
     update_data = st.button("✏️ Update Data", width="stretch")
-    model = Models(number_days=predict_days, name=cryptocurrency_data[cryptocurrency])
+    model = Models(number_days=convert_days[predict_days], name=cryptocurrency_data[cryptocurrency])
+
     if train_coin:
         with st.status("Training on process... ⏳", expanded=True) as status:
             st.write("Tuning HyperParameters...")
@@ -65,7 +72,29 @@ with col2:
         ax.set_ylabel("Price")
         ax.legend()
         st.pyplot(fig)
+if eval_coin:
+    colw , colx = st.columns([0.5 ,0.5], border=True, gap = "small")
 
-#Update Coin
-#Eval
+    with colw:
+        mae_data = model.eval_mae()
+        st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>MAE</p>", unsafe_allow_html=True )
+        st.area_chart(data = mae_data, x_label= "Day", y_label= "MAE", width="stretch")
+
+    with colx:
+        mape_data = model.eval_mape()
+        st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>MAPE</p>", unsafe_allow_html=True )
+        st.line_chart(data = mape_data, x_label= "Day", y_label= "MAPE", width="stretch")
+
+    coly , colz = st.columns([0.5 ,0.5], border=True, gap = "small")
+
+    with coly:
+        r2_data = model.eval_r_squared()
+        st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>R-Squared</p>", unsafe_allow_html=True )
+        st.line_chart(data = r2_data, x_label= "Day", y_label= "R-Squared", width="stretch")
+
+    with colz:
+        da_data = model.directional_accuracy()
+        st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>Directional Accuracy</p>", unsafe_allow_html=True )
+        st.line_chart(data = da_data, x_label= "Day", y_label= "Directional Accuracy", width="stretch")
+
 

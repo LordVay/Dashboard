@@ -50,7 +50,7 @@ class Models:
               .set_index("Date")
               .sort_index())
 
-        for i in range(1, self.number_days + 1):
+        for i in range(1, int(self.number_days) + 1):
             df[f"close_lag_{i}"] = df["Close"].shift(i)
 
         df["return"]         = df["Close"].pct_change().shift(1)
@@ -222,7 +222,7 @@ class Models:
         return pd.Series(
             [np.sqrt(mean_squared_error(y_test[f"Target_{i}"], preds[f"Target_{i}"]))
              for i in range(1, 16)],
-            index=[f"Day+{i}" for i in range(1, 16)],
+            index=[i for i in range(1, 16)],
             name="RMSE",
         )
 
@@ -231,7 +231,7 @@ class Models:
         return pd.Series(
             [mean_absolute_error(y_test[f"Target_{i}"], preds[f"Target_{i}"])
              for i in range(1, 16)],
-            index=[f"Day+{i}" for i in range(1, 16)],
+            index=[i for i in range(1, 16)],
             name="MAE",
         )
 
@@ -240,7 +240,7 @@ class Models:
         return pd.Series(
             [r2_score(y_test[f"Target_{i}"], preds[f"Target_{i}"])
              for i in range(1, 16)],
-            index=[f"Day+{i}" for i in range(1, 16)],
+            index=[i for i in range(1, 16)],
             name="R²",
         )
 
@@ -251,7 +251,7 @@ class Models:
                              preds[f"Target_{i}"].values) /
                             (y_test[f"Target_{i}"].values + 1e-9))) * 100
              for i in range(1, 16)],
-            index=[f"Day+{i}" for i in range(1, 16)],
+            index=[i for i in range(1, 16)],
             name="MAPE%",
         )
 
@@ -267,7 +267,7 @@ class Models:
 
         return pd.Series(
             da_scores,
-            index=[f"Day+{i}" for i in range(1, 16)],
+            index=[i for i in range(1, 16)],
             name="DA%",
         )
 

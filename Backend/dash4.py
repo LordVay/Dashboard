@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 import os
 from datetime import datetime
 
+
 load_dotenv()
 
 api_key = os.getenv("API_KEY")
@@ -65,49 +66,10 @@ def get_updated_data(currency, days):
         "interval" : "hourly"
     }
 
-    response = requests.get(url, params=params)
+    response = requests.get(url, headers=headers, params=params)
     data = response.json()
     data_price = pd.DataFrame(data["prices"], columns=["timestamp", "price"])
     data_price["datetime"] = pd.to_datetime(data_price["timestamp"], unit="ms")
     data_price["date"] = data_price["datetime"].dt.date
 
     return data_price
-
-
-
-currency_id = []
-current_time = datetime.today().date()
-
-data_range = pd.read_sql(sql = f"""SELECT * from {self.name}""", con = engine)
-if data_range.empty:
-    return None
-        
-data_range["date"] = pd.to_datetime(data_range["date"])
-dataframe =(data_range.rename(columns={"low": "Low", "high": "High", "date": "Date"}).set_index("Date").sort_index())
-
-last_time = dataframe.index[-1]
-days_interval = (current_time - last_time).days
-
-fetched_data = get_updated_data(currency=currency_id, days=days_interval)
-
-
-date_array = [last_time + timedelta(days = i) for i in range((days_interval) + 1)]
-
-ohlc_array = []
-for i in date_array:
-
-    specific_date_data = fetched_data[fetched_data["date" == i]]
-
-    ohlc = {
-    "ticker": cryptocurremcy,
-    "date": i,
-    "open": specific_date_data["price"].iloc[0],
-    "high": specific_date_data["price"].max(),
-    "low": specific_date_data["price"].min(),
-    "close": specific_date_data["price"].iloc[-1]
-    }
-    
-    ohlc_array.append(ohlc)
-ohlc_dataframe = pd.DataFrame(ohlc_array)
-ohlc_dataframe =(ohlc_dataframe.rename(columns={"low": "Low", "high": "High", "date": "Date", "open":"Open", "close":"Close"}))
-
