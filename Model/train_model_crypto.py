@@ -4,6 +4,8 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import RobustScaler
 from sklearn.model_selection import TimeSeriesSplit, RandomizedSearchCV
 from xgboost import XGBRegressor
+import sys, os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from create_table import get_engine
 from datetime import timedelta
 
@@ -315,9 +317,9 @@ class Models:
         print(f"[{self.name.upper()}] Cache cleared.")
 
     def timeframe(self, time):
-        date = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
+        dataframe = pd.read_sql(sql = f"""SELECT * FROM {self.name}""", con = engine )
 
-        if date.empty:
+        if dataframe.empty:
             return None
         
         timeframe = {
@@ -329,5 +331,9 @@ class Models:
         if time not in timeframe:
             raise ValueError(f"Invalid time: {time}")  
         dataframe["date"] = pd.to_datetime(dataframe["date"])
-        dataframe = date.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(timeframe[time])["USDollars"]
+        dataframe = dataframe.rename(columns={'close': 'USDollars' , 'date': 'Date'}).set_index("Date").tail(timeframe[time])["USDollars"]
         return dataframe
+    
+model = Models(number_days=15, name="btc")
+result = model.forecast()
+print(result)
