@@ -1,6 +1,7 @@
 import sys, os 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from Model.train_model_crypto import Models
+from Database.OHLC_fetch import Fetch
 import streamlit as st
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -42,18 +43,27 @@ with col1:
     if not timeframe:
         raise ValueError("Not a timeframe")
     
-    train_coin = st.button("⚡Train model", width="stretch")
-    eval_coin  = st.button("📊 Evaluate", width="stretch")
-    predict_coin = st.button("💭 Predict", width="stretch")
-    update_data = st.button("✏️ Update Data", width="stretch")
     model = Models(number_days=convert_days[predict_days], name=cryptocurrency_data[cryptocurrency])
+    update = Fetch(name=cryptocurrency_data[cryptocurrency])
 
+    update_button = update.check_updated()
+
+    train_coin = st.button("Train model", width="stretch", disabled= update_button)
+    eval_coin  = st.button("Evaluate", width="stretch")
+    predict_coin = st.button("Predict", width="stretch")
+    update_data = st.button("Update Data", width="stretch", disabled= update_button)
+    
+    if update_data:
+        with st.status("Updating OHLC Data...", expanded=True) as status:
+            update.append_table()
+            status.update(label="Data Updated!", state="complete", expanded=False)
+    
     if train_coin:
-        with st.status("Training on process... ⏳", expanded=True) as status:
+        with st.status("Training on process... ", expanded=True) as status:
             st.write("Tuning HyperParameters...")
             model.train_model()
-            
-            status.update(label="✅ Model Updated!", state="complete", expanded=False)
+            status.update(label="Model Updated!", state="complete", expanded=False)
+    
 
 with col2:
     if predict_coin:
@@ -72,6 +82,7 @@ with col2:
         ax.set_ylabel("Price")
         ax.legend()
         st.pyplot(fig)
+
 if eval_coin:
     colw , colx = st.columns([0.5 ,0.5], border=True, gap = "small")
 

@@ -11,7 +11,7 @@ st.caption("Live Prices, Price History, Market Insights and Latest Crypto Headli
 df = get_data()
 df = df.rename(columns= {"name" : "Coin", "symbol" : "Symbol", "current_price" : "Price (USD)", "market_cap" : "Market Cap", "price_change_percentage_24h" : "24 Hours % Change" } )
 st.dataframe(df.style.format({ "Price (USD)": "${:,.2f}", "Market Cap": "${:,.0f}", "24 Hours % Change": "{:.2f}%" }), hide_index= True)
-st.subheader("🌍 World's Top 3 CryptoNews as of Today !")
+st.subheader("World's Top 3 CryptoNews as of Today !")
 articles = get_news()
 
 

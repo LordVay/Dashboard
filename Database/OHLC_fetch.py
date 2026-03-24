@@ -1,6 +1,4 @@
-import requests
 import pandas as pd
-from dotenv import load_dotenv
 import sys ,os
 from datetime import datetime, timedelta
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))

@@ -6,7 +6,7 @@ from sqlalchemy import create_engine
 analog = 'mysql+mysqlconnector://root:Ballesteros14*@localhost:3306/Dashboard'
 my_comp = 'mysql+mysqlconnector://dashboard_user:Ballesteros14@localhost:3306/Dashboard'
 
-engine = create_engine(my_comp)
+engine = create_engine(analog)
 folder_path = r"C:\Users\VBallest\OneDrive - Analog Devices, Inc\Desktop\Dashboard\Cryptodataset"
 
 def get_engine():
