@@ -1,12 +1,10 @@
 import streamlit as st
 import requests
 import pandas as pd
-from dotenv import load_dotenv
 import os
 from datetime import datetime
 
 
-load_dotenv()
 
 api_key = st.secrets["API_KEY"]
 news_key = st.secrets["NEWS_API"]
