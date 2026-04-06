@@ -48,7 +48,7 @@ with col1:
 
     update_button = update.check_updated()
 
-    train_coin = st.button("Train model", width="stretch", disabled= update_button)
+    train_coin = st.button("Train model", width="stretch")
     eval_coin  = st.button("Evaluate", width="stretch")
     predict_coin = st.button("Predict", width="stretch")
     update_data = st.button("Update Data", width="stretch", disabled= update_button)
@@ -67,44 +67,89 @@ with col1:
 
 with col2:
     if predict_coin:
-        time_graph = model.timeframe(timeframe) # Timeframe
+        time_graph = model.timeframe(timeframe)
+        time_graph.index = pd.to_datetime(time_graph.index)
 
         prediction = model.forecast()
-        concatinate_graph = pd.concat([time_graph, prediction])
+        prediction = prediction.tail(convert_days[predict_days]) 
+        prediction.index = pd.to_datetime(prediction.index)
+
+        print(time_graph)
+        print(prediction)
+
+        connect_point = pd.Series([time_graph.iloc[-1]], index=[time_graph.index[-1]])
+        prediction_connected = pd.concat([connect_point, prediction])
+
+        st.session_state["time_graph"] = time_graph
+        st.session_state["prediction_connected"] = prediction_connected
+        st.session_state["crypto_name"] = cryptocurrency_data[cryptocurrency]
+
+    if "time_graph" in st.session_state:
+        time_graph = st.session_state["time_graph"]
+        prediction_connected = st.session_state["prediction_connected"]
+        crypto_name = st.session_state["crypto_name"]
+
+        fig2, ax2 = plt.subplots(figsize = (12, 5))
+        fig2.patch.set_facecolor("none") 
+        ax2.set_facecolor("none")
+        ax2.plot(time_graph.index, time_graph.values, color='steelblue', label='Historical', linewidth=2)
+        ax2.set_title(f"{(cryptocurrency_data[cryptocurrency]).upper()} Price History", fontsize=14, color = "white")
+        ax2.set_xlabel("Date", color = "white")
+        ax2.set_ylabel("Price", color = "white")
+        ax2.tick_params(axis='x', rotation=90, color = "white", labelcolor = "white")
+        ax2.tick_params(axis='y', color = "white", labelcolor = "white")
+        ax2.legend(labelcolor='white', facecolor='none', edgecolor='white')
+        for spine in ax2.spines.values():
+            spine.set_edgecolor('white')
+        st.pyplot(fig2)
 
         fig, ax = plt.subplots(figsize=(12, 5))
-
+        fig.patch.set_facecolor("none") 
+        ax.set_facecolor("none")
         ax.plot(time_graph.index, time_graph.values, color='steelblue', label='Historical', linewidth=2)
-        ax.plot(prediction.index, prediction.values, color='tomato', label='Predicted', linewidth=2, linestyle='--')
-
-        ax.set_title(f"{cryptocurrency_data[cryptocurrency]} Price Forecast", fontsize=14)
-        ax.set_xlabel("Date")
-        ax.set_ylabel("Price")
-        ax.legend()
+        ax.plot(prediction_connected.index, prediction_connected.values, color='tomato', label='Predicted', linewidth=2, linestyle='--')
+        ax.set_title(f"{crypto_name.upper()} Price Forecast", fontsize=14, color = "white")
+        ax.set_xlabel("Date", color = "white")
+        ax.set_ylabel("Price", color = "white")
+        ax.tick_params(axis='x', rotation=90, color = "white", labelcolor = "white")
+        ax.tick_params(axis='y', color = "white", labelcolor = "white")
+        ax.legend(labelcolor='white', facecolor='none', edgecolor='white')
+        for spine in ax.spines.values():
+            spine.set_edgecolor('white')
         st.pyplot(fig)
 
 if eval_coin:
-    colw , colx = st.columns([0.5 ,0.5], border=True, gap = "small")
+    rmse_data = model.eval_rmse()
+    mape_data = model.eval_mape()
+    r2_data = model.eval_r_squared()
+    da_data = model.directional_accuracy()
 
+    st.session_state["rmse_data"] = rmse_data
+    st.session_state["mape_data"] = mape_data
+    st.session_state["r2_data"] = r2_data
+    st.session_state["da_data"] = da_data
+
+if "rmse_data" in st.session_state:
+    rmse_data = st.session_state["rmse_data"] 
+    mape_data = st.session_state["mape_data"]
+    r2_data = st.session_state["r2_data"]
+    da_data = st.session_state["da_data"] 
+
+    colw , colx = st.columns([0.5 ,0.5], border=True, gap = "small")
     with colw:
-        mae_data = model.eval_mae()
-        st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>MAE</p>", unsafe_allow_html=True )
-        st.area_chart(data = mae_data, x_label= "Day", y_label= "MAE", width="stretch")
+        st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>RMSE</p>", unsafe_allow_html=True )
+        st.line_chart(data = rmse_data, x_label= "Day", y_label= "MAE", width="stretch")
 
     with colx:
-        mape_data = model.eval_mape()
         st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>MAPE</p>", unsafe_allow_html=True )
         st.line_chart(data = mape_data, x_label= "Day", y_label= "MAPE", width="stretch")
 
     coly , colz = st.columns([0.5 ,0.5], border=True, gap = "small")
-
     with coly:
-        r2_data = model.eval_r_squared()
         st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>R-Squared</p>", unsafe_allow_html=True )
         st.line_chart(data = r2_data, x_label= "Day", y_label= "R-Squared", width="stretch")
 
     with colz:
-        da_data = model.directional_accuracy()
         st.markdown( f"<p style='text-align: center; color: white; font-size:25x;'>Directional Accuracy</p>", unsafe_allow_html=True )
         st.line_chart(data = da_data, x_label= "Day", y_label= "Directional Accuracy", width="stretch")
 
