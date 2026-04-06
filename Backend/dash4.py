@@ -8,8 +8,8 @@ from datetime import datetime
 
 load_dotenv()
 
-api_key = os.getenv("API_KEY")
-news_key = os.getenv("NEWS_API")
+api_key = st.secrets["API_KEY"]
+news_key = st.secrets["NEWS_API"]
 
 if not news_key or not api_key:
     raise ValueError("API key not found in environment variables.")
