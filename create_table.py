@@ -9,8 +9,21 @@ my_comp = 'mysql+mysqlconnector://dashboard_user:Ballesteros14@localhost:3306/Da
 engine = create_engine(analog)
 folder_path = r"C:\Users\VBallest\OneDrive - Analog Devices, Inc\Desktop\Dashboard\Cryptodataset"
 
+import os
+import pandas as pd
+import streamlit as st
+from sqlalchemy import create_engine
+
 def get_engine():
-        return engine
+
+    host     = st.secrets["DB_HOST"]
+    port     = st.secrets["DB_PORT"]
+    user     = st.secrets["DB_USER"]
+    password = st.secrets["DB_PASSWORD"]
+    database = st.secrets["DB_NAME"]
+
+    url = f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}?ssl_ca=ca.pem"
+    return create_engine(url)
 
 def create_tables(engine, folder_path):
         for csv in os.listdir(folder_path):
