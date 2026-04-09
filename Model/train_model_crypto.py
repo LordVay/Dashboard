@@ -196,6 +196,7 @@ class Models:
 
 
     def test_model(self) -> pd.DataFrame:
+        self.reset_cache()
         self.clean_dataset()
         _, _, X_test, _ = self._cache
 
