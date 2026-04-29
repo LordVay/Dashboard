@@ -37,22 +37,23 @@ def get_data():
     return dataframe
 
 @st.cache_data
-def get_news():
-    url = "https://cryptopanic.com/api/developer/v2/posts/"
+def get_news(coin_id):
+    url = url = "https://api.coingecko.com/api/v3/news"
 
     params = {
-    "auth_token": news_key,
-    "currencies": "BTC",  
-    "public" : "true"        
+    "coin_id" : coin_id,
+    "language" : "en",
+    "type" : "news",
+    "page" : 1,
+    "per_page" : 10
+
     
     }
-    response = requests.get(url, params=params)
+    response = requests.get(url, headers=headers, params=params)
 
     data = response.json()
 
-    data_array = data["results"]
-
-    return data_array
+    return data
 
 @st.cache_data
 def get_updated_data(currency, days):
@@ -71,3 +72,5 @@ def get_updated_data(currency, days):
     data_price["date"] = data_price["datetime"].dt.date
 
     return data_price
+
+
